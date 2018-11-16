@@ -1,13 +1,13 @@
 package routes
 
 import (
-	"goWanlu/appenv"
+	"goWanlu/server"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterWebRoutes(env *appenv.Env) {
+func RegisterWebRoutes(env *server.Env) {
 	router := env.Gin
 	router.LoadHTMLGlob("templates/*")
 

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"goWanlu/appenv"
 	"goWanlu/routes"
+	"goWanlu/server"
 	"log"
 	"net/http"
 
@@ -14,7 +14,7 @@ func welcome(c *gin.Context) {
 }
 
 func main() {
-	env := appenv.Inst()
+	env := server.Inst()
 	defer env.Drop()
 	log.Println("Starting....")
 
