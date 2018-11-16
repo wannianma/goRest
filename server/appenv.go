@@ -1,7 +1,7 @@
 package server
 
 import (
-	"goWanlu/token"
+	"goWeb/token"
 	"log"
 	"sync"
 

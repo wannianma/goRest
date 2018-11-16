@@ -1,8 +1,8 @@
 package main
 
 import (
-	"goWanlu/routes"
-	"goWanlu/server"
+	"goWeb/routes"
+	"goWeb/server"
 	"log"
 	"net/http"
 

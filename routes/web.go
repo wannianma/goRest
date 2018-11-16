@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"goWanlu/server"
+	"goWeb/server"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

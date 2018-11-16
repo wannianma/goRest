@@ -1,8 +1,8 @@
 package account
 
 import (
-	"goWanlu/models"
-	"goWanlu/server"
+	"goWeb/models"
+	"goWeb/server"
 	"net/http"
 	"time"
 

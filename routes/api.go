@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"goWanlu/handler/api/indoor"
-	"goWanlu/server"
+	"goWeb/handler/api/indoor"
+	"goWeb/server"
 )
 
 func RegisterApiRoutes(env *server.Env) {
