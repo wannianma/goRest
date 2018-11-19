@@ -1,6 +1,7 @@
 package server
 
 import (
+	"goWeb/models"
 	"goWeb/token"
 	"log"
 	"sync"
@@ -44,6 +45,12 @@ func (e *Env) Drop() {
 	}
 }
 
+func (e *Env) _db_create() {
+	if e.DB != nil {
+		e.DB.AutoMigrate(&models.Users{})
+	}
+}
+
 func _init(fpath string) *Env {
 	var conf tomlConfig
 	if _, err := toml.DecodeFile(fpath, &conf); err != nil {
@@ -59,6 +66,7 @@ func _init(fpath string) *Env {
 		log.Fatalf("Error Open Database '%v'", err)
 	}
 	env.DB = db
+	env._db_create()
 	env.TokenManager, err = token.New(
 		env.RSAPriKey,
 		env.RSAPubKey,

@@ -3,10 +3,12 @@ package account
 import (
 	"goWeb/models"
 	"goWeb/server"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginInput struct {
@@ -38,6 +40,7 @@ type RegisterInput struct {
 	Password string `json:"password" binding:"required"`
 	Nick     string `json:"nick" binding:"required"`
 	Mobile   string `json:"mobile" binding:"required"`
+	Email    string `json:"email"`
 }
 
 func Register(c *gin.Context) {
@@ -46,10 +49,26 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	salt := string(_genSalt(4))
+	passwd, _ := bcrypt.GenerateFromPassword([]byte(json.Password+salt), bcrypt.MinCost)
+	log.Println(json.Nick)
 	env := server.Inst()
-	user := models.Users{UserName: json.Nick, Birthday: time.Now(), Mobile: json.Mobile}
+	user := models.Users{
+		UserName: json.Nick,
+		Birthday: time.Now(),
+		Mobile:   json.Mobile,
+		Email:    json.Email,
+		Password: string(passwd),
+		Salt:     salt}
 
-	env.DB.Create(&user)
+	if err := env.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusOK, gin.H{"msg": err})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "you are logged in"})
+}
+
+func _genSalt(num int) []byte {
+	return []byte("abce")
 }
