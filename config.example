@@ -1,7 +1,7 @@
 [App]
 Host="0.0.0.0"
 Port="7777"
-DBUrl="xxx:xxx@(192.168.188.30:3306)/classes?charset=utf8&parseTime=True&loc=Local"
+DBUrl="xxx:xxx@(192.168.188.30:3306)/classes?charset=utf8mb4&parseTime=True&loc=Local"
 RSAPriKey='''
 -----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQDZLcfh1OWKNYLHFbQ7olKMHHzmkVliZClHneBbzH5Bn5fOHhNY
