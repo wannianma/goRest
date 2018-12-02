@@ -77,6 +77,7 @@ func _init(fpath string) *Env {
 		log.Fatalf("Error Create TokenManager '%v'", err)
 	}
 	env.Gin = gin.Default()
+	// gin.SetMode(gin.ReleaseMode)
 
 	if env.AllowCORS {
 		log.Println("In DEBUG MODE, CORS is ALLOWED")

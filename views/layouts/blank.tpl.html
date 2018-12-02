@@ -1,0 +1,34 @@
+<!-- /views/admin/master.html -->
+<!doctype html>
+<html>
+    <head>
+        <title>{{.title}}</title>
+        {{include "layouts/header"}}
+        {{template "import_css" .}}
+    </head>
+    <!--
+    BODY TAG OPTIONS:
+    =================
+    Apply one or more of the following classes to get the
+    desired effect
+    |---------------------------------------------------------|
+    | SKINS         | skin-blue                               |
+    |               | skin-black                              |
+    |               | skin-purple                             |
+    |               | skin-yellow                             |
+    |               | skin-red                                |
+    |               | skin-green                              |
+    |---------------------------------------------------------|
+    |LAYOUT OPTIONS | fixed                                   |
+    |               | layout-boxed                            |
+    |               | layout-top-nav                          |
+    |               | sidebar-collapse                        |
+    |               | sidebar-mini                            |
+    |---------------------------------------------------------|
+    -->
+    <body class="hold-transition skin-blue layout-top-nav">
+        {{template "content" .}}
+        {{include "layouts/footer"}}
+        {{template "import_js" .}}
+    </body>
+</html>

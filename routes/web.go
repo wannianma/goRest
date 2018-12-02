@@ -2,10 +2,9 @@ package routes
 
 import (
 	"goWeb/server"
+	"html/template"
 	"net/http"
 	"time"
-
-	"html/template"
 
 	"github.com/foolin/gin-template"
 	"github.com/gin-gonic/gin"
@@ -13,6 +12,9 @@ import (
 
 func RegisterWebRoutes(env *server.Env) {
 	router := env.Gin
+	// router.LoadHTMLGlob("templates/*.tmpl.html")
+	router.Static("/static", "resources/static")
+
 	//new template engine
 	router.HTMLRender = gintemplate.New(gintemplate.TemplateConfig{
 		Root:      "views",
@@ -26,18 +28,27 @@ func RegisterWebRoutes(env *server.Env) {
 		},
 		DisableCache: true,
 	})
-	// router.LoadHTMLGlob("templates/*.tmpl.html")
-	router.Static("/static", "resources/static")
 
-	router.GET("/nav", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "top-nav.tmpl.html", gin.H{
-			"title": "Main website",
+	//=========== Instant Message ===========//
+
+	//new template middleware
+	newYear := router.Group("/ny", gintemplate.NewMiddleware(gintemplate.TemplateConfig{
+		Root:         "views",
+		Extension:    ".tpl.html",
+		Master:       "/layouts/blank",
+		Partials:     []string{},
+		DisableCache: true,
+	}))
+
+	newYear.GET("/", func(ctx *gin.Context) {
+		// With the middleware, `HTML()` can detect the valid TemplateEngine.
+		gintemplate.HTML(ctx, http.StatusOK, "happy", gin.H{
+			"title": "Backend title!",
 		})
 	})
-	// Default HTML page (client-side routing implemented via Vue.js)
+
+	// // Default HTML page (client-side routing implemented via Vue.js)
 	router.NoRoute(func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index", gin.H{
-			"title": "Main website",
-		})
+		c.String(http.StatusOK, "404 Not Found!")
 	})
 }
