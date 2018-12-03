@@ -3,6 +3,7 @@
 function StartRealtime(roomid, timestamp) {
     StartEpoch(timestamp);
     StartSSE();
+    countDownBar();
 }
 
 function StartEpoch(timestamp) {
@@ -20,29 +21,6 @@ function StartEpoch(timestamp) {
             {values: defaultData}
         ]
     });
-
-    // window.mallocsChart = $('#mallocsChart').epoch({
-    //     type: 'time.area',
-    //     axes: ['bottom', 'left'],
-    //     height: height,
-    //     historySize: 10,
-    //     data: [
-    //         {values: defaultData},
-    //         {values: defaultData}
-    //     ]
-    // });
-
-    // window.messagesChart = $('#messagesChart').epoch({
-    //     type: 'time.line',
-    //     axes: ['bottom', 'left'],
-    //     height: 240,
-    //     historySize: 10,
-    //     data: [
-    //         {values: defaultData},
-    //         {values: defaultData},
-    //         {values: defaultData}
-    //     ]
-    // });
 }
 
 function StartSSE() {
@@ -57,8 +35,40 @@ function StartSSE() {
 function stats(e) {
     var data = parseJSONStats(e.data);
     powerChart.push(data.power);
+    setProcessBarData(data.distance);
     // mallocsChart.push(data.mallocs);
     // messagesChart.push(data.messages);
+}
+
+/* jQueryKnob */
+$('.knob').knob();
+
+function countDownBar() {
+    var time = 0;
+    var interval = setInterval(() => {
+        if (time < 10) {
+        time++;
+        $(".knob").val(time).trigger('change');
+        } else{
+            countDownFinish();
+            clearInterval(interval);
+        }
+    }, 1000);
+}
+
+function countDownFinish() {
+    alert("10 second finish");
+    $(".knob").val(0).trigger('change');
+}
+
+/* End jQueryKnob */
+
+function setProcessBarData(data) {
+    $("#green-bar").attr("aria-valuenow", data.A);
+    $("#green-bar").css("height",parseInt(data.A/10) + "%");
+
+    $("#red-bar").attr("aria-valuenow", data.B);
+    $("#red-bar").css("height",parseInt(data.B/10)+ "%");
 }
 
 function parseJSONStats(e) {
@@ -70,8 +80,14 @@ function parseJSONStats(e) {
         {time: timestamp, y: data.powerB}
     ];
 
+    var distance = {
+        A: data.distanceA,
+        B: data.distanceB
+    }
+
     return {
         power: power,
+        distance: distance
         // messages: messages
     }
 }
