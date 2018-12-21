@@ -1,8 +1,12 @@
 package ny
 
 import (
+	"encoding/json"
 	"io"
+	"io/ioutil"
+	"log"
 	"math/rand"
+	"net/http"
 	"sync"
 	"time"
 
@@ -24,6 +28,20 @@ type TeamInfo struct {
 	answerB string
 	teamA   *Team
 	teamB   *Team
+}
+
+type RegisterInput struct {
+	Account  string `json:"account" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Nick     string `json:"nick" binding:"required"`
+	Mobile   string `json:"mobile" binding:"required"`
+	Email    string `json:"email"`
+}
+type Question struct {
+	Qid     int      `json:"qid"`
+	Title   string   `json:"title"`
+	Options []string `json:"options"`
+	Answer  int
 }
 
 /*
@@ -74,6 +92,15 @@ func (info *TeamInfo) getTeamData() map[string]uint64 {
 	return savedPower
 }
 
+func loadDataFromFile() []byte {
+	b, err := ioutil.ReadFile("./questions.json")
+	if err != nil {
+		log.Printf("%s", err)
+		return []byte("")
+	}
+	return b
+}
+
 func (info *TeamInfo) getAnserData() {
 	mutexTeam.RLock()
 	defer mutexTeam.RUnlock()
@@ -98,6 +125,7 @@ var (
 			distance: 0,
 		},
 	}
+	questionsStr = loadDataFromFile()
 )
 
 func openListener(roomid string) chan interface{} {
@@ -138,4 +166,14 @@ func StreamData(c *gin.Context) {
 		}
 		return true
 	})
+}
+
+func GetQuestions(c *gin.Context) {
+	var questionJSON []Question
+	if err := json.Unmarshal(questionsStr, &questionJSON); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "load questions error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "", "data": questionJSON})
 }
