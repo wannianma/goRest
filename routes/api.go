@@ -20,6 +20,7 @@ func RegisterApiRoutes(env *server.Env) {
 	{
 		stream.GET("/data", ny.StreamData)
 		stream.GET("/questions", ny.GetQuestions)
+		stream.GET("/team/:name", ny.PushData)
+		stream.GET("/answer/:name", ny.PushAnswer)
 	}
-
 }

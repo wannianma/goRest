@@ -5,8 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -23,9 +23,9 @@ type TeamInfo struct {
 	totalDistance uint64
 	curAnswer     int
 	// 如何确定开始出题时间
-	beginAt int
-	answerA string
-	answerB string
+	anserAt uint64
+	answerA int
+	answerB int
 	teamA   *Team
 	teamB   *Team
 }
@@ -37,6 +37,7 @@ type RegisterInput struct {
 	Mobile   string `json:"mobile" binding:"required"`
 	Email    string `json:"email"`
 }
+
 type Question struct {
 	Qid     int      `json:"qid"`
 	Title   string   `json:"title"`
@@ -51,10 +52,24 @@ type Question struct {
 	"answer": "A"
 }
 */
-func (info *TeamInfo) setAnswer(data map[string]interface{}) {
+func (info *TeamInfo) setAnswerA(data map[string]int) {
 	mutexTeam.Lock()
+	defer mutexTeam.Unlock()
+	now := uint64(time.Now().Unix())
+	if data["qid"] > info.curAnswer && now > teamInfo.anserAt {
+		info.curAnswer = data["qid"]
+		info.answerA = data["aid"]
+	}
+}
 
-	mutexTeam.Unlock()
+func (info *TeamInfo) setAnswerB(data map[string]int) {
+	mutexTeam.Lock()
+	defer mutexTeam.Unlock()
+	now := uint64(time.Now().Unix())
+	if data["qid"] > info.curAnswer && now > teamInfo.anserAt {
+		info.curAnswer = data["qid"]
+		info.answerA = data["aid"]
+	}
 }
 
 /*
@@ -63,33 +78,40 @@ func (info *TeamInfo) setAnswer(data map[string]interface{}) {
 	distance: float32
 }
 */
-func (info *TeamInfo) setTeam(data map[string]interface{}) {
+func (info *TeamInfo) setTeamA(data map[string]uint64) {
 	mutexTeam.Lock()
-
-	mutexTeam.Unlock()
+	defer mutexTeam.Unlock()
+	if info.teamA.distance < info.totalDistance {
+		info.teamA.distance = data["distance"]
+		info.teamA.power = data["power"]
+	}
 }
 
-func (info *TeamInfo) setBeginAt(beginAt int) {
+func (info *TeamInfo) setTeamB(data map[string]uint64) {
 	mutexTeam.Lock()
-
-	mutexTeam.Unlock()
+	defer mutexTeam.Unlock()
+	if info.teamB.distance < info.totalDistance {
+		info.teamB.distance = data["distance"]
+		info.teamB.power = data["power"]
+	}
 }
 
 func (info *TeamInfo) getTeamData() map[string]uint64 {
-	mutexTeam.Lock()
-	defer mutexTeam.Unlock()
-	rand.Seed(time.Now().UnixNano())
-	if info.teamA.distance < info.totalDistance && info.teamB.distance < info.totalDistance {
-		info.teamA.distance += uint64(rand.Intn(20))
-		info.teamB.distance += uint64(rand.Intn(20))
-	}
+	mutexTeam.RLock()
+	defer mutexTeam.RUnlock()
 	savedPower := map[string]uint64{
 		"timestamp": uint64(time.Now().Unix()),
-		"powerA":    uint64(rand.Intn(240)),
-		"powerB":    uint64(rand.Intn(240)),
+		"powerA":    info.teamA.power,
+		"powerB":    info.teamB.power,
 		"distanceA": info.teamA.distance,
 		"distanceB": info.teamB.distance}
 	return savedPower
+}
+
+func (info *TeamInfo) getCurAnswer() int {
+	mutexTeam.RLock()
+	defer mutexTeam.RUnlock()
+	return info.curAnswer
 }
 
 func loadDataFromFile() []byte {
@@ -112,10 +134,10 @@ var (
 	mutexTeam      sync.RWMutex
 	teamInfo       = TeamInfo{
 		totalDistance: 1000,
-		curAnswer:     1,
-		beginAt:       0,
-		answerA:       "",
-		answerB:       "",
+		curAnswer:     0,
+		anserAt:       0,
+		answerA:       0,
+		answerB:       0,
 		teamA: &Team{
 			power:    0,
 			distance: 0,
@@ -148,6 +170,7 @@ func getAnswerBroadcast(roomid string) broadcast.Broadcaster {
 	return b
 }
 
+// StreamData sse stream push event
 func StreamData(c *gin.Context) {
 	roomid := "bb"
 	listener := openListener(roomid)
@@ -168,6 +191,7 @@ func StreamData(c *gin.Context) {
 	})
 }
 
+// GetQuestions 拉取题目列表
 func GetQuestions(c *gin.Context) {
 	var questionJSON []Question
 	if err := json.Unmarshal(questionsStr, &questionJSON); err != nil {
@@ -176,4 +200,50 @@ func GetQuestions(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": "", "data": questionJSON})
+}
+
+func PushData(c *gin.Context) {
+	teamName := c.Param("name")
+	distance, _ := strconv.ParseUint(c.Query("distance"), 10, 64)
+	power, _ := strconv.ParseUint(c.Query("power"), 10, 64)
+
+	teamData := map[string]uint64{
+		"distance": distance,
+		"power":    power,
+	}
+
+	if teamName == "A" {
+		teamInfo.setTeamA(teamData)
+	} else {
+		teamInfo.setTeamB(teamData)
+	}
+
+	state := map[string]int{
+		"curAnswer": teamInfo.getCurAnswer(),
+	}
+
+	c.JSON(http.StatusOK, gin.H{"msg": "", "data": state})
+}
+
+func PushAnswer(c *gin.Context) {
+	teamName := c.Param("name")
+	qid, _ := strconv.Atoi(c.Query("qid"))
+	aid, _ := strconv.Atoi(c.Query("aid"))
+
+	answerData := map[string]int{
+		"qid": qid,
+		"aid": aid,
+	}
+
+	if teamName == "A" {
+		teamInfo.setAnswerA(answerData)
+	} else {
+		teamInfo.setAnswerB(answerData)
+	}
+
+	state := map[string]int{
+		"curAnswer": teamInfo.getCurAnswer(),
+	}
+
+	c.JSON(http.StatusOK, gin.H{"msg": "", "data": state})
 }
