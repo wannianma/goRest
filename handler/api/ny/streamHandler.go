@@ -31,14 +31,6 @@ type TeamInfo struct {
 	teamB   *Team
 }
 
-type RegisterInput struct {
-	Account  string `json:"account" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Nick     string `json:"nick" binding:"required"`
-	Mobile   string `json:"mobile" binding:"required"`
-	Email    string `json:"email"`
-}
-
 type Question struct {
 	Qid     int      `json:"qid"`
 	Title   string   `json:"title"`
@@ -191,7 +183,11 @@ func GetQuestions(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": "load questions error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"code": 200, "data": questionJSON})
+	data := map[string]interface{}{
+		"questions": questionJSON,
+		"curAnswer": teamInfo.getCurAnswer(),
+	}
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": data})
 }
 
 func PushData(c *gin.Context) {
@@ -240,4 +236,25 @@ func PushAnswer(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": state})
+}
+
+func ResetTeam(c *gin.Context) {
+	mutexTeam.Lock()
+	defer mutexTeam.Unlock()
+	teamInfo = TeamInfo{
+		totalDistance: 1000,
+		curAnswer:     0,
+		anserAt:       0,
+		answerA:       0,
+		answerB:       0,
+		teamA: &Team{
+			power:    0,
+			distance: 0,
+		},
+		teamB: &Team{
+			power:    0,
+			distance: 0,
+		},
+	}
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": ""})
 }

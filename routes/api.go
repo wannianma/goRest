@@ -22,5 +22,6 @@ func RegisterApiRoutes(env *server.Env) {
 		stream.GET("/questions", ny.GetQuestions)
 		stream.GET("/team/:name", ny.PushData)
 		stream.GET("/answer/:name", ny.PushAnswer)
+		stream.GET("/reset", ny.ResetTeam)
 	}
 }
