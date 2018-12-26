@@ -11,7 +11,7 @@ import (
 )
 
 func welcome(c *gin.Context) {
-	c.String(http.StatusOK, "Hello from Wanlu!")
+	c.String(http.StatusOK, "Hello from goWeb!")
 }
 
 // StartWorkers start starsWorker by goroutine.
@@ -25,7 +25,8 @@ func StartGin() {
 
 	env := server.Inst()
 	defer env.Drop()
-	log.Println("Starting....")
+
+	log.Println("Starting....[...]:" + env.Port)
 
 	env.Gin.GET("/", welcome)
 	routes.RegisterApiRoutes(env)

@@ -2,6 +2,7 @@ package ny
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -45,20 +46,14 @@ type Question struct {
 	Answer  int
 }
 
-/*
-{
-	"no": int,
-	"answer_at": 0,
-	"answer": "A"
-}
-*/
 func (info *TeamInfo) setAnswerA(data map[string]int) {
 	mutexTeam.Lock()
 	defer mutexTeam.Unlock()
 	now := uint64(time.Now().Unix())
-	if data["qid"] > info.curAnswer && now > teamInfo.anserAt {
+	if data["qid"] > info.curAnswer && now > info.anserAt {
 		info.curAnswer = data["qid"]
 		info.answerA = data["aid"]
+		getAnswerBroadcast("A").Submit(fmt.Sprintf("%d:%d", data["qid"], data["aid"]))
 	}
 }
 
@@ -66,18 +61,13 @@ func (info *TeamInfo) setAnswerB(data map[string]int) {
 	mutexTeam.Lock()
 	defer mutexTeam.Unlock()
 	now := uint64(time.Now().Unix())
-	if data["qid"] > info.curAnswer && now > teamInfo.anserAt {
+	if data["qid"] > info.curAnswer && now > info.anserAt {
 		info.curAnswer = data["qid"]
-		info.answerA = data["aid"]
+		info.answerB = data["aid"]
 	}
+	getAnswerBroadcast("B").Submit(fmt.Sprintf("%d:%d", data["qid"], data["aid"]))
 }
 
-/*
-{
-	power: int,
-	distance: float32
-}
-*/
 func (info *TeamInfo) setTeamA(data map[string]uint64) {
 	mutexTeam.Lock()
 	defer mutexTeam.Unlock()
@@ -114,6 +104,11 @@ func (info *TeamInfo) getCurAnswer() int {
 	return info.curAnswer
 }
 
+func (info *TeamInfo) getAnserData() {
+	mutexTeam.RLock()
+	defer mutexTeam.RUnlock()
+}
+
 func loadDataFromFile() []byte {
 	b, err := ioutil.ReadFile("./questions.json")
 	if err != nil {
@@ -121,12 +116,6 @@ func loadDataFromFile() []byte {
 		return []byte("")
 	}
 	return b
-}
-
-func (info *TeamInfo) getAnserData() {
-	mutexTeam.RLock()
-	defer mutexTeam.RUnlock()
-
 }
 
 var (
@@ -172,18 +161,21 @@ func getAnswerBroadcast(roomid string) broadcast.Broadcaster {
 
 // StreamData sse stream push event
 func StreamData(c *gin.Context) {
-	roomid := "bb"
-	listener := openListener(roomid)
-	ticker := time.NewTicker(1 * time.Second)
+	listenerA := openListener("A")
+	listenerB := openListener("B")
+	ticker := time.NewTicker(10 * time.Second)
 	defer func() {
-		closeListener(roomid, listener)
+		closeListener("A", listenerA)
+		closeListener("B", listenerB)
 		ticker.Stop()
 	}()
 
 	c.Stream(func(w io.Writer) bool {
 		select {
-		case msg := <-listener:
-			c.SSEvent("message", msg)
+		case msg := <-listenerA:
+			c.SSEvent("answerA", msg)
+		case msg := <-listenerB:
+			c.SSEvent("answerB", msg)
 		case <-ticker.C:
 			c.SSEvent("stats", teamInfo.getTeamData())
 		}
@@ -199,17 +191,19 @@ func GetQuestions(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": "load questions error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": "", "data": questionJSON})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": questionJSON})
 }
 
 func PushData(c *gin.Context) {
 	teamName := c.Param("name")
 	distance, _ := strconv.ParseUint(c.Query("distance"), 10, 64)
 	power, _ := strconv.ParseUint(c.Query("power"), 10, 64)
+	speed, _ := strconv.ParseUint(c.Query("speed"), 10, 64)
 
 	teamData := map[string]uint64{
 		"distance": distance,
 		"power":    power,
+		"speed":    speed,
 	}
 
 	if teamName == "A" {
@@ -222,7 +216,7 @@ func PushData(c *gin.Context) {
 		"curAnswer": teamInfo.getCurAnswer(),
 	}
 
-	c.JSON(http.StatusOK, gin.H{"msg": "", "data": state})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": state})
 }
 
 func PushAnswer(c *gin.Context) {
@@ -245,5 +239,5 @@ func PushAnswer(c *gin.Context) {
 		"curAnswer": teamInfo.getCurAnswer(),
 	}
 
-	c.JSON(http.StatusOK, gin.H{"msg": "", "data": state})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": state})
 }

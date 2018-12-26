@@ -3,7 +3,41 @@
 function StartRealtime(roomid, timestamp) {
     StartEpoch(timestamp);
     StartSSE();
-    countDownBar();
+    LoadQuestions();
+    // countDownBar();
+}
+
+var ANSWER = {
+    "curAnswer": 0,
+    "answerA": 0,
+    "answerB": 0,
+    "questions": {}
+};
+
+var btnMap = ["btnA", "btnB", "btnC", "btnD"];
+var host = "http://127.0.0.1:7777";
+
+function LoadQuestions() {
+    $.ajax({
+        type: "GET",
+        url: host + "/stream/questions",
+        dataType: "json",
+        success: function(data){
+            ANSWER.questions = data.data;
+            DisplayCurQuestion();
+        }
+    });
+}
+
+function DisplayCurQuestion() {
+    if (ANSWER.questions.length > 0) {
+        var curQuestion = ANSWER.questions[ANSWER.curAnswer];
+        $("#AnswerTitle").html((ANSWER.curAnswer+1) + "、" + curQuestion.title);
+        $("#btnA").html("A:" + curQuestion.options[0]);
+        $("#btnB").html("B:" + curQuestion.options[1]);
+        $("#btnC").html("C:" + curQuestion.options[2]);
+        $("#btnD").html("D:" + curQuestion.options[3]);
+    }
 }
 
 function StartEpoch(timestamp) {
@@ -30,6 +64,8 @@ function StartSSE() {
     }
     var source = new EventSource('/stream/data');
     source.addEventListener('stats', stats, false);
+    source.addEventListener('answerA', answerA, false);
+    source.addEventListener('answerB', answerB, false);
 }
 
 function stats(e) {
@@ -40,13 +76,60 @@ function stats(e) {
     // messagesChart.push(data.messages);
 }
 
+function answerA(e) {
+    var newAnswer = e.data.split(":");
+    var now = Date.parse(new Date())/1000;
+    if (parseInt(newAnswer[0]) == (ANSWER.curAnswer+1)) {
+        if (ANSWER.answerA < now) {
+            ANSWER.answerA = now;
+        }
+
+        if (ANSWER.answerB == 0) {
+            countDownBar();
+        }
+        displayAnswerA(newAnswer[1]);
+    }
+}
+
+function displayAnswerA(aid) {
+    $("#" + btnMap[aid]).removeClass("btn-default");
+    $("#" + btnMap[aid]).addClass("btn-success");
+}
+
+function answerB(e) {
+    var newAnswer = e.data.split(":");
+    var now = Date.parse(new Date())/1000;
+    if (parseInt(newAnswer[0]) == (ANSWER.curAnswer+1)) {
+        if (ANSWER.answerB < now) {
+            ANSWER.answerB = now;
+        }
+
+        if (ANSWER.answerA == 0) {
+            countDownBar();
+        }
+        displayAnswerB(newAnswer[1]);
+    }
+}
+
+function displayAnswerB(aid) {
+    $("#" + btnMap[aid]).removeClass("btn-default");
+    $("#" + btnMap[aid]).addClass("btn-danger");
+}
+
+
+function displayRightAnswer() {
+    var rightAid = ANSWER.questions[ANSWER.curAnswer].Answer;
+    $("#" + btnMap[rightAid]).removeClass("btn-default");
+    $("#" + btnMap[rightAid]).addClass("btn-github");
+}
+
 /* jQueryKnob */
 $('.knob').knob();
 
 function countDownBar() {
     var time = 0;
     var interval = setInterval(() => {
-        if (time < 10) {
+        if (time < 10 * 2) {
         time++;
         $(".knob").val(time).trigger('change');
         } else{
@@ -57,7 +140,9 @@ function countDownBar() {
 }
 
 function countDownFinish() {
-    alert("10 second finish");
+    ANSWER.answerA = 0;
+    ANSWER.answerB = 0;
+    
     $(".knob").val(0).trigger('change');
 }
 
