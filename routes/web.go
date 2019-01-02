@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"goWeb/handler/web/novel"
 	"goWeb/server"
 	"html/template"
 	"net/http"
@@ -28,8 +29,11 @@ func RegisterWebRoutes(env *server.Env) {
 		},
 		DisableCache: true,
 	})
-
-	//=========== Instant Message ===========//
+	novelRoute := router.Group("/novel")
+	{
+		novelRoute.GET("/list", novel.NovelList)
+		novelRoute.GET("/detail/:pid", novel.NovelDetail)
+	}
 
 	//new template middleware
 	newYear := router.Group("/ny", gintemplate.NewMiddleware(gintemplate.TemplateConfig{

@@ -17,28 +17,38 @@
 
 		<!-- Main content -->
 		<section class="content">
-		<div class="callout callout-info">
-			<h4>Tip!</h4>
-
-			<p>Add the layout-top-nav class to the body tag to get this layout. This feature can also be used with a
-			sidebar! So use this class if you want to remove the custom dropdown menus from the navbar and use regular
-			links instead.</p>
-		</div>
-		<div class="callout callout-danger">
-			<h4>Warning!</h4>
-
-			<p>The construction of this layout differs from the normal one. In other words, the HTML markup of the navbar
-			and the content will slightly differ than that of the normal layout.</p>
-		</div>
-		<div class="box box-default">
+			<div class="box">
 			<div class="box-header with-border">
-			<h3 class="box-title">Blank Box</h3>
+				<h3 class="box-title">Bordered Table</h3>
 			</div>
+			<!-- /.box-header -->
 			<div class="box-body">
-			The great content goes here
+				<table class="table table-bordered">
+				<tbody><tr>
+					<th style="width: 10px">#</th>
+					<th>Title</th>
+					<th style="width: 40px">Nums</th>
+				</tr>
+				{{ range .result }}
+				<tr>
+					<td>{{ .id}}</td>
+					<td><a href="/novel/detail/{{.id}}">{{ .title}}</a></td>
+					<td><span class="badge bg-red">{{.length}}</span></td>
+				</tr>
+				{{ end }}
+				</tbody></table>
 			</div>
 			<!-- /.box-body -->
-		</div>
+			<div class="box-footer clearfix">
+				<ul class="pagination pagination-sm no-margin pull-right">
+				<li><a href="#">«</a></li>
+				<li><a href="#">1</a></li>
+				<li><a href="#">2</a></li>
+				<li><a href="#">3</a></li>
+				<li><a href="#">»</a></li>
+				</ul>
+			</div>
+			</div>
 		<!-- /.box -->
 		</section>
 		<!-- /.content -->

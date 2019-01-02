@@ -8,6 +8,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -20,6 +21,7 @@ type appConfig struct {
 	Port                  string
 	ListenAddr            string `toml:"-"`
 	DBUrl                 string
+	Redis                 string
 	RSAPriKey             string
 	RSAPubKey             string
 	MaxAccessTokenMinute  uint
@@ -35,6 +37,7 @@ type Env struct {
 	appConfig
 	Gin          *gin.Engine
 	DB           *gorm.DB `toml:"-"`
+	RClient      *redis.Client
 	TokenManager *token.TokenManager
 }
 
@@ -42,6 +45,10 @@ func (e *Env) Drop() {
 	if e.DB != nil {
 		e.DB.Close()
 		e.DB = nil
+	}
+	if e.RClient != nil {
+		e.RClient.Close()
+		e.RClient = nil
 	}
 }
 
@@ -67,6 +74,11 @@ func _init(fpath string) *Env {
 	}
 	env.DB = db
 	env._db_create()
+	env.RClient = redis.NewClient(&redis.Options{
+		Addr:     env.Redis,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 	env.TokenManager, err = token.New(
 		env.RSAPriKey,
 		env.RSAPubKey,
