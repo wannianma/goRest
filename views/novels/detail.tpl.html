@@ -5,14 +5,9 @@
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
 		<h1>
-			Top Navigation
-			<small>Example 2.0</small>
+			Novel Detail
+			<small>version 1.0</small>
 		</h1>
-		<ol class="breadcrumb">
-			<li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-			<li><a href="#">Layout</a></li>
-			<li class="active">Top Navigation</li>
-		</ol>
 		</section>
 
 		<!-- Main content -->
@@ -35,28 +30,21 @@
 						<strong><i class="fa fa-pencil margin-r-5"></i> 章节:</strong>
 						<p></p>
 						<p>
-								{{ range .details }}
-							<div class="panel box box-success">
-							<div class="box-header with-border">
-								<h4 class="box-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#collapse{{.Score}}">
-									{{.Title}}
-								</a>
-								</h4>
+							<div class="box-body no-padding">
+								<table class="table table-condensed">
+									<tbody>
+								{{ range .details }}									
+									<tr>
+									{{ range .}}
+									<td>{{.}}</td>
+									{{end}}
+									</tr>
+								{{end}}
+								</tbody></table>
 							</div>
-							<div id="collapse{{.Score}}" class="panel-collapse collapse">
-								<div class="box-body">
-									{{.Info}}
-								</div>
-							</div>
-							</div>
-						{{end}}
 						</p>
-			
 						<hr>
-			
 						<strong><i class="fa fa-file-text-o margin-r-5"></i> Notes</strong>
-			
 						<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
 					</div>
 			</div>

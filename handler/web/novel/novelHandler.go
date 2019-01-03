@@ -50,7 +50,7 @@ func NovelList(c *gin.Context) {
 		})
 	}
 
-	c.HTML(http.StatusOK, "index", gin.H{
+	c.HTML(http.StatusOK, "novels/list", gin.H{
 		"result": result,
 	})
 }
@@ -76,18 +76,23 @@ func NovelDetail(c *gin.Context) {
 	}
 	sort.Sort(sort.StringSlice(rsArr))
 
-	var detailArr []Detail
-	for _, val := range rsArr {
+	var detailArr [][]string
+	threeArr := []string{}
+	for idx, val := range rsArr {
 		if result := strings.Index(val, ":0"); result > 0 {
 			continue
 		}
 		rsDetail, _ := client.Get(val).Result()
 		var detail Detail
 		json.Unmarshal([]byte(rsDetail), &detail)
-		detailArr = append(detailArr, detail)
+		threeArr = append(threeArr, detail.Title)
+		if idx%3 == 0 {
+			detailArr = append(detailArr, threeArr)
+			threeArr = []string{}
+		}
 	}
 
-	c.HTML(http.StatusOK, "detail", gin.H{
+	c.HTML(http.StatusOK, "novels/detail", gin.H{
 		"novel":   novel,
 		"details": detailArr,
 	})

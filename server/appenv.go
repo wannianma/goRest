@@ -55,6 +55,8 @@ func (e *Env) Drop() {
 func (e *Env) _db_create() {
 	if e.DB != nil {
 		e.DB.AutoMigrate(&models.Users{})
+		e.DB.AutoMigrate(&models.Novel{})
+		e.DB.AutoMigrate(&models.Post{})
 	}
 }
 
