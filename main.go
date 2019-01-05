@@ -3,7 +3,6 @@ package main
 import (
 	"goWeb/routes"
 	"goWeb/server"
-	"goWeb/workers"
 	"log"
 	"net/http"
 
@@ -16,12 +15,12 @@ func welcome(c *gin.Context) {
 
 // StartWorkers start starsWorker by goroutine.
 func StartWorkers() {
-	go workers.StatsWorker()
+	//go workers.StatsWorker()
 }
 
 // StartGin Start Gin Server
 func StartGin() {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 
 	env := server.Inst()
 	defer env.Drop()

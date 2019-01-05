@@ -1,18 +1,17 @@
 {{define "content"}}
   <!-- Full Width Column -->
   <div class="content-wrapper">
-	<div class="container">
+	<div class="container" style="padding:15px 0px;">
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
-		<h1>
-			Novel List
-			<small>verion 1.0</small>
+		<h1 style="font-size:20px;">
+			小说列表
 		</h1>
-		<!-- <ol class="breadcrumb">
-			<li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-			<li><a href="#">Layout</a></li>
-			<li class="active">Top Navigation</li>
-		</ol> -->
+		<ol class="breadcrumb">
+			<li><a href="/"><i class="fa fa-dashboard"></i> Home</a></li>
+			<li><a href="/novel/list">小说</a></li>
+			<li class="active">列表</li>
+		</ol>
 		</section>
 
 		<!-- Main content -->
@@ -20,16 +19,16 @@
 			<div class="box">
 			<!-- /.box-header -->
 			<div class="box-body">
-				<table class="table table-bordered">
-				<tbody><tr>
-					<th style="width: 10px">#</th>
-					<th>Title</th>
-					<th style="width: 40px">Nums</th>
-				</tr>
+				<div class="box-header">
+					<h3 class="box-title">小说更新列表</h3>
+				</div>
+				<table class="table">
+				<tbody>
 				{{ range .result }}
 				<tr>
 					<td>{{ .id}}</td>
 					<td><a href="/novel/detail/{{.id}}">{{ .title}}</a></td>
+					<td class="visible-md-block visible-lg-block">{{.anchor}}</td>
 					<td><span class="badge bg-red">{{.length}}</span></td>
 				</tr>
 				{{ end }}
@@ -38,11 +37,8 @@
 			<!-- /.box-body -->
 			<div class="box-footer clearfix">
 				<ul class="pagination pagination-sm no-margin pull-right">
-				<li><a href="#">«</a></li>
-				<li><a href="#">1</a></li>
-				<li><a href="#">2</a></li>
-				<li><a href="#">3</a></li>
-				<li><a href="#">»</a></li>
+				<li><a href="/novel/list?page={{.pre}}">« Previous</a></li>
+				<li><a href="/novel/list?page={{.next}}">Next »</a></li>
 				</ul>
 			</div>
 			</div>

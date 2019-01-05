@@ -33,6 +33,7 @@ func RegisterWebRoutes(env *server.Env) {
 	{
 		novelRoute.GET("/list", novel.NovelList)
 		novelRoute.GET("/detail/:pid", novel.NovelDetail)
+		novelRoute.GET("/post/detail/:id", novel.PostDetail)
 	}
 
 	//new template middleware

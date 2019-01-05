@@ -1,0 +1,53 @@
+{{define "content"}}
+  <!-- Full Width Column -->
+  <div class="content-wrapper">
+	<div class="container" style="padding:15px 0px;">
+		<section class="content-header">
+			<h1 style="font-size:20px;">
+				小说详情
+			</h1>
+			<ol class="breadcrumb">
+					<li><a href="/"><i class="fa fa-dashboard"></i> Home</a></li>
+					<li><a href="/novel/list">小说</a></li>
+					<li><a href="/novel/detail/{{.novel.Remote_id}}">{{.novel.Title}}</a></li>
+					<li class="active">{{.post.Title}}</li>
+				</ol>
+		</section>
+
+		<!-- Main content -->
+		<section class="content">
+			<div class="box">
+				<div class="box-body">
+					<div style="background-color:#f7f7f7; padding: 5px 0px; margin-top: 0;">
+						<h3 class="text-center">{{.post.Title}}</h3>
+						<div class="text-center" style="padding:10px 10px; color:#085308;">
+							<ul class="list-inline">
+								<li>推荐</li>
+								<li><a href="{{.preURL}}">上一章</a></li>
+								<li><a href="/novel/detail/{{.novel.Remote_id}}">章节目录</a></li>
+								<li><a href="{{.nextURL}}">下一章</a></li>
+								<li>加入书签</li>
+							</ul>
+						</div>
+					</div>
+					<hr/>
+					<div style="padding:5px 5px;">
+						<p style="font-size:18px; line-height:200%;">
+							  {{.post.Info}}
+						</p>
+					</div>
+				</div>
+				<div class="box-footer">
+					<div class="pull-right">
+						<a class="btn btn-default" href="{{.nextURL}}" role="button">下一章 <i class="fa fa-hand-o-right"></i></a>
+					</div>
+					<a class="btn btn-default" href="{{.preURL}}" role="button"><i class="fa fa-hand-o-left"></i> 上一章</a>
+				</div>
+			</div>
+		<!-- /.box -->
+		</section>
+		<!-- /.content -->
+	</div>
+	<!-- /.container -->
+	</div>
+{{end}}

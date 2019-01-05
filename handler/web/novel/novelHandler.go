@@ -1,24 +1,15 @@
 package novel
 
 import (
-	"encoding/json"
 	"fmt"
+	"goWeb/models"
 	"goWeb/server"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
-
-type Novel struct {
-	ID     uint
-	Title  string
-	Anthor string
-	Intro  string
-}
 
 type Detail struct {
 	ID    uint
@@ -27,31 +18,53 @@ type Detail struct {
 	Info  string
 }
 
+var pageSize = 20
+
 func NovelList(c *gin.Context) {
 	page := c.DefaultQuery("page", "0")
 	env := server.Inst()
-	client := env.RClient
+	pageInt, _ := strconv.Atoi(page)
 
-	start, _ := strconv.ParseInt(page, 10, 64)
-	rs, err := client.LRange("list:post", start*100, (start+1)*100).Result()
-	if err != nil {
-		log.Println(err)
+	var novels []models.Novel
+	env.DB.Offset(pageInt * pageSize).Limit(pageSize).Find(&novels)
+
+	var nidArr []int
+
+	for _, val := range novels {
+		nidArr = append(nidArr, val.Remote_id)
 	}
-	var result []map[string]string
-	for _, val := range rs {
-		strs := strings.Split(val, "-")
-		rs2, _ := client.Keys(strs[0] + ":post:*").Result()
-		length := fmt.Sprintf("%d", len(rs2))
 
-		result = append(result, map[string]string{
-			"id":     strs[0],
-			"title":  strs[1],
-			"length": length,
+	rows, err := env.DB.Raw("SELECT n_id, count(id) as total from posts WHERE n_id IN (?) group by n_id", nidArr).Rows()
+	if err != nil {
+		log.Panicln(err)
+	}
+	nidMap := make(map[int]int)
+	for rows.Next() {
+		var nid int
+		var total int
+		rows.Scan(&nid, &total)
+		nidMap[nid] = total
+	}
+
+	var result []map[string]interface{}
+	for _, val1 := range novels {
+		result = append(result, map[string]interface{}{
+			"id":     val1.Remote_id,
+			"title":  val1.Title,
+			"anchor": val1.Anthor,
+			"length": nidMap[val1.Remote_id],
 		})
+	}
+
+	pagePre := 0
+	if pageInt > 0 {
+		pagePre = pageInt - 1
 	}
 
 	c.HTML(http.StatusOK, "novels/list", gin.H{
 		"result": result,
+		"pre":    pagePre,
+		"next":   (pageInt + 1),
 	})
 }
 
@@ -59,41 +72,63 @@ func NovelDetail(c *gin.Context) {
 	pid := c.Param("pid")
 	fmt.Println(pid)
 	env := server.Inst()
-	client := env.RClient
+	pidInt, _ := strconv.Atoi(pid)
 
-	rs, err := client.Get(pid + ":post:0").Result()
-	if err != nil {
-		log.Println(err)
-	}
-	var novel Novel
-	if err = json.Unmarshal([]byte(rs), &novel); err != nil {
-		log.Println(err)
-	}
+	var novel models.Novel
+	env.DB.Where("remote_id = ?", pidInt).First(&novel)
 
-	rsArr, err := client.Keys(pid + ":post:*").Result()
-	if err != nil {
-		log.Println(err)
-	}
-	sort.Sort(sort.StringSlice(rsArr))
+	var posts []models.Post
 
-	var detailArr [][]string
-	threeArr := []string{}
-	for idx, val := range rsArr {
-		if result := strings.Index(val, ":0"); result > 0 {
-			continue
-		}
-		rsDetail, _ := client.Get(val).Result()
-		var detail Detail
-		json.Unmarshal([]byte(rsDetail), &detail)
-		threeArr = append(threeArr, detail.Title)
-		if idx%3 == 0 {
+	env.DB.Select("id, title").Where("n_id = ?", pidInt).Order("remote_id asc").Find(&posts)
+
+	var detailArr [][]models.Post
+	var threeArr []models.Post
+	arrLength := len(posts)
+	for idx, val := range posts {
+		threeArr = append(threeArr, val)
+		if idx%3 == 2 {
 			detailArr = append(detailArr, threeArr)
-			threeArr = []string{}
+			threeArr = []models.Post{}
+		} else if idx == (arrLength - 1) {
+			detailArr = append(detailArr, threeArr)
 		}
 	}
 
 	c.HTML(http.StatusOK, "novels/detail", gin.H{
 		"novel":   novel,
 		"details": detailArr,
+	})
+}
+
+func PostDetail(c *gin.Context) {
+	id := c.Param("id")
+	env := server.Inst()
+	idInt, _ := strconv.Atoi(id)
+
+	var post models.Post
+	var nodel models.Novel
+	var prePost models.Post
+	var nextPost models.Post
+
+	env.DB.Where("id = ?", idInt).First(&post)
+	env.DB.Where("remote_id = ?", post.NID).First(&nodel)
+	env.DB.Limit(1).Where("n_id = ? AND remote_id < ?", post.NID, post.Remote_id).Order("remote_id desc").Select("id").First(&prePost)
+	env.DB.Limit(1).Where("n_id = ? AND remote_id > ?", post.NID, post.Remote_id).Order("remote_id asc").Select("id").First(&nextPost)
+
+	preURL := "#"
+	nextURL := "#"
+	if prePost.ID != 0 {
+		preURL = fmt.Sprintf("/novel/post/detail/%d", prePost.ID)
+	}
+
+	if nextPost.ID != 0 {
+		nextURL = fmt.Sprintf("/novel/post/detail/%d", nextPost.ID)
+	}
+
+	c.HTML(http.StatusOK, "novels/postDetail", gin.H{
+		"post":    post,
+		"novel":   nodel,
+		"preURL":  preURL,
+		"nextURL": nextURL,
 	})
 }

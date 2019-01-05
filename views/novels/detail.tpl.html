@@ -1,13 +1,17 @@
 {{define "content"}}
   <!-- Full Width Column -->
   <div class="content-wrapper">
-	<div class="container">
+	<div class="container" style="padding:15px 0px;">
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
-		<h1>
-			Novel Detail
-			<small>version 1.0</small>
-		</h1>
+			<h1 style="font-size:20px;">
+				小说详情
+			</h1>
+			<ol class="breadcrumb">
+				<li><a href="/"><i class="fa fa-dashboard"></i> Home</a></li>
+				<li><a href="/novel/list">小说</a></li>
+				<li class="active">{{.novel.Title}}</li>
+			</ol>
 		</section>
 
 		<!-- Main content -->
@@ -18,35 +22,51 @@
 			</div>
 			<!-- /.box-header -->
 			<div class="box-body">
-					<div class="box-body">
-						<strong><i class="fa fa-book margin-r-5"></i> 作者</strong>
-						<p class="text-muted">
-							{{.novel.Anthor}}
-						</p>
-						<hr>
-						<strong><i class="fa fa-map-marker margin-r-5"></i> 简介</strong>
-						<p class="text-muted">{{.novel.Intro}}</p>
-						<hr>
-						<strong><i class="fa fa-pencil margin-r-5"></i> 章节:</strong>
-						<p></p>
-						<p>
-							<div class="box-body no-padding">
-								<table class="table table-condensed">
-									<tbody>
-								{{ range .details }}									
-									<tr>
+				<div class="col-md-2">
+					<strong><i class="fa fa-book margin-r-5"></i> 作者</strong>
+					<p class="text-muted">
+						{{.novel.Anthor}}
+					</p>
+				</div>
+				<div class="col-md-10">
+					<strong><i class="fa fa-map-marker margin-r-5"></i> 简介</strong>
+					<p class="text-muted">{{.novel.Intro}}</p>
+				</div>
+				<div class="col-md-12">
+					<hr>
+					<strong><i class="fa fa-pencil margin-r-5"></i> 章节:</strong>
+					<p>
+						<div class="visible-md-block visible-lg-block">
+							<table class="table table-striped">
+								<tbody>
+									{{ range .details }}									
+									<tr style="padding: 5px;">
 									{{ range .}}
-									<td>{{.}}</td>
+									<td><a href="/novel/post/detail/{{.ID}}">{{.Title}}</a></td>
 									{{end}}
 									</tr>
-								{{end}}
-								</tbody></table>
-							</div>
-						</p>
-						<hr>
-						<strong><i class="fa fa-file-text-o margin-r-5"></i> Notes</strong>
-						<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
-					</div>
+									{{end}}
+								</tbody>
+							</table>
+						</div>
+						<div class="visible-sm-block visible-xs-block">
+							<table class="table table-striped">
+								<tbody>
+									{{ range .details }}									
+									{{ range .}}
+									<tr>
+										<td><a href="/novel/post/detail/{{.ID}}">{{.Title}}</a></td>
+									</tr>
+									{{end}}
+									{{end}}
+								</tbody>
+							</table>
+						</div>
+					</p>
+					<hr>
+					<strong><i class="fa fa-file-text-o margin-r-5"></i> Notes</strong>
+					<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
+				</div>
 			</div>
 			</div>
 		<!-- /.box -->
