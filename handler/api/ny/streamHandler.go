@@ -45,8 +45,8 @@ func (info *TeamInfo) setAnswerA(data map[string]int) {
 	if data["qid"] > info.curAnswer && now > info.anserAt {
 		info.curAnswer = data["qid"]
 		info.answerA = data["aid"]
-		getAnswerBroadcast("A").Submit(fmt.Sprintf("%d:%d", data["qid"], data["aid"]))
 	}
+	getAnswerBroadcast("A").Submit(fmt.Sprintf("%d:%d", data["qid"], data["aid"]))
 }
 
 func (info *TeamInfo) setAnswerB(data map[string]int) {
@@ -96,6 +96,21 @@ func (info *TeamInfo) getCurAnswer() int {
 	return info.curAnswer
 }
 
+func (info *TeamInfo) getStartTime() uint64 {
+	mutexTeam.RLock()
+	defer mutexTeam.RUnlock()
+	return info.anserAt
+}
+
+func (info *TeamInfo) setStartTime() {
+	mutexTeam.Lock()
+	defer mutexTeam.Unlock()
+	log.Println(info.anserAt)
+	// if info.anserAt == 0 {
+	info.anserAt = uint64(time.Now().Unix()) + 90
+	// }
+}
+
 func (info *TeamInfo) getAnserData() {
 	mutexTeam.RLock()
 	defer mutexTeam.RUnlock()
@@ -114,7 +129,7 @@ var (
 	answerChannels = make(map[string]broadcast.Broadcaster)
 	mutexTeam      sync.RWMutex
 	teamInfo       = TeamInfo{
-		totalDistance: 1000,
+		totalDistance: 3000,
 		curAnswer:     0,
 		anserAt:       0,
 		answerA:       0,
@@ -155,7 +170,7 @@ func getAnswerBroadcast(roomid string) broadcast.Broadcaster {
 func StreamData(c *gin.Context) {
 	listenerA := openListener("A")
 	listenerB := openListener("B")
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	defer func() {
 		closeListener("A", listenerA)
 		closeListener("B", listenerB)
@@ -190,6 +205,11 @@ func GetQuestions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": data})
 }
 
+func TeamStart(c *gin.Context) {
+	teamInfo.setStartTime()
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": ""})
+}
+
 func PushData(c *gin.Context) {
 	teamName := c.Param("name")
 	distance, _ := strconv.ParseUint(c.Query("distance"), 10, 64)
@@ -208,8 +228,9 @@ func PushData(c *gin.Context) {
 		teamInfo.setTeamB(teamData)
 	}
 
-	state := map[string]int{
+	state := map[string]interface{}{
 		"curAnswer": teamInfo.getCurAnswer(),
+		"startAt":   teamInfo.getStartTime(),
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": state})

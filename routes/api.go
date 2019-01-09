@@ -19,6 +19,7 @@ func RegisterApiRoutes(env *server.Env) {
 	stream := router.Group("/stream")
 	{
 		stream.GET("/data", ny.StreamData)
+		stream.GET("/start", ny.TeamStart)
 		stream.GET("/questions", ny.GetQuestions)
 		stream.GET("/team/:name", ny.PushData)
 		stream.GET("/answer/:name", ny.PushAnswer)

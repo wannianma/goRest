@@ -15,7 +15,7 @@ var ANSWER = {
 };
 
 var btnMap = ["btnA", "btnB", "btnC", "btnD"];
-var host = "http://127.0.0.1";
+var host = "http://192.168.188.240:7777";
 var isCountDown = false;
 
 function LoadQuestions() {
