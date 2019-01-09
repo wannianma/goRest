@@ -3,6 +3,7 @@ package ny
 import (
 	"encoding/json"
 	"fmt"
+	"goWeb/server"
 	"io"
 	"io/ioutil"
 	"log"
@@ -128,8 +129,9 @@ func loadDataFromFile() []byte {
 var (
 	answerChannels = make(map[string]broadcast.Broadcaster)
 	mutexTeam      sync.RWMutex
+	env            = server.Inst()
 	teamInfo       = TeamInfo{
-		totalDistance: 3000,
+		totalDistance: uint64(env.TotalDistance),
 		curAnswer:     0,
 		anserAt:       0,
 		answerA:       0,

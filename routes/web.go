@@ -43,7 +43,8 @@ func RegisterWebRoutes(env *server.Env) {
 	newYear.GET("/", func(ctx *gin.Context) {
 		// With the middleware, `HTML()` can detect the valid TemplateEngine.
 		gintemplate.HTML(ctx, http.StatusOK, "happy", gin.H{
-			"title": "Backend title!",
+			"title":    "Backend title!",
+			"distance": env.TotalDistance,
 		})
 	})
 

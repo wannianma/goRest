@@ -25,6 +25,7 @@ type appConfig struct {
 	MaxAccessTokenMinute  uint
 	MaxRefreshTokenMinute uint
 	AllowCORS             bool
+	TotalDistance         uint
 }
 
 type tomlConfig struct {
