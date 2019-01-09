@@ -15,13 +15,15 @@ var ANSWER = {
 };
 
 var btnMap = ["btnA", "btnB", "btnC", "btnD"];
-var host = "http://192.168.188.240:7777";
+// var host = "http://192.168.188.240:7777";
 var isCountDown = false;
+var isEnd = false;
+var processBarHight = 30;
 
 function LoadQuestions() {
     $.ajax({
         type: "GET",
-        url: host + "/stream/questions",
+        url: "/stream/questions",
         dataType: "json",
         success: function(data){
             ANSWER.questions = data.data.questions;
@@ -46,7 +48,7 @@ function DisplayCurQuestion() {
         $("#resetTeam").click(() => {
             $.ajax({
                 type: "GET",
-                url: host + "/stream/reset",
+                url: "/stream/reset",
                 dataType: "json",
                 success: function(data){
                     window.location.reload();
@@ -185,9 +187,19 @@ function sleep(ms) {
 
 function setProcessBarData(data) {
     $("#green-bar").attr("aria-valuenow", data.A);
-    $("#green-bar").css("height",parseInt(data.A/10) + "%");
+    $("#green-bar").css("height",parseInt(data.A/processBarHight) + "%");
+    if (parseInt(data.A/processBarHight) == 100 && !isEnd) {
+        console.log("A END");
+        $("#modal-success").modal("show");
+        isEnd = true;
+    }
     $("#red-bar").attr("aria-valuenow", data.B);
-    $("#red-bar").css("height",parseInt(data.B/10)+ "%");
+    $("#red-bar").css("height",parseInt(data.B/processBarHight)+ "%");
+    if (parseInt(data.B/processBarHight) == 100 && !isEnd) {
+        console.log("B END");
+        $("#modal-danger").modal("show");
+        isEnd = true;
+    }
 }
 
 function parseJSONStats(e) {
