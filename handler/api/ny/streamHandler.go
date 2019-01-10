@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -118,7 +120,8 @@ func (info *TeamInfo) getAnserData() {
 }
 
 func loadDataFromFile() []byte {
-	b, err := ioutil.ReadFile("./questions.json")
+	wd, _ := os.Getwd()
+	b, err := ioutil.ReadFile(path.Join(wd, "questions.json"))
 	if err != nil {
 		log.Printf("%s", err)
 		return []byte("")
