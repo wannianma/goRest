@@ -106,10 +106,10 @@ func (info *TeamInfo) getStartTime() uint64 {
 func (info *TeamInfo) setStartTime() {
 	mutexTeam.Lock()
 	defer mutexTeam.Unlock()
-	log.Println(info.anserAt)
-	// if info.anserAt == 0 {
+	env := server.Inst()
+
 	info.anserAt = uint64(time.Now().Unix()) + 90
-	// }
+	info.totalDistance = uint64(env.TotalDistance)
 }
 
 func (info *TeamInfo) getAnserData() {
@@ -129,9 +129,8 @@ func loadDataFromFile() []byte {
 var (
 	answerChannels = make(map[string]broadcast.Broadcaster)
 	mutexTeam      sync.RWMutex
-	env            = server.Inst()
 	teamInfo       = TeamInfo{
-		totalDistance: uint64(env.TotalDistance),
+		totalDistance: 1000,
 		curAnswer:     0,
 		anserAt:       0,
 		answerA:       0,

@@ -14,6 +14,7 @@ import (
 
 var once sync.Once
 var instance *Env
+var configPath string
 
 type appConfig struct {
 	Host                  string
@@ -52,10 +53,13 @@ func (e *Env) _db_create() {
 	}
 }
 
-func _init(fpath string) *Env {
+func _init() *Env {
 	var conf tomlConfig
-	if _, err := toml.DecodeFile(fpath, &conf); err != nil {
-		log.Fatalf("Invalid toml file: %s, decode with error: %v", fpath, err)
+	if configPath == "" {
+		configPath = "./config.toml"
+	}
+	if _, err := toml.DecodeFile(configPath, &conf); err != nil {
+		log.Fatalf("Invalid toml file: %s, decode with error: %v", configPath, err)
 	}
 
 	env := Env{}
@@ -77,11 +81,12 @@ func _init(fpath string) *Env {
 	if err != nil {
 		log.Fatalf("Error Create TokenManager '%v'", err)
 	}
-	env.Gin = gin.Default()
-	// gin.SetMode(gin.ReleaseMode)
 
+	gin.SetMode(gin.ReleaseMode)
+	env.Gin = gin.Default()
 	if env.AllowCORS {
 		log.Println("In DEBUG MODE, CORS is ALLOWED")
+		gin.SetMode(gin.DebugMode)
 		env.Gin.Use(corsMiddleware())
 	}
 
@@ -90,9 +95,13 @@ func _init(fpath string) *Env {
 
 func Inst() *Env {
 	once.Do(func() {
-		instance = _init("./config.toml")
+		instance = _init()
 	})
 	return instance
+}
+
+func SetConfig(path string) {
+	configPath = path
 }
 
 // a helper middleware used to by-pass CORS
