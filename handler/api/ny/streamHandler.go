@@ -109,7 +109,7 @@ func (info *TeamInfo) setStartTime() {
 	defer mutexTeam.Unlock()
 	env := server.Inst()
 
-	info.anserAt = uint64(time.Now().Unix()) + 90
+	info.anserAt = uint64(time.Now().Unix()) + 30
 	info.totalDistance = uint64(env.TotalDistance)
 }
 

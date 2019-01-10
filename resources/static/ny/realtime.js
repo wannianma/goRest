@@ -156,7 +156,7 @@ function countDownBar() {
     var time = 0;
     isCountDown = true;
     var interval = setInterval(() => {
-        if (time < 10) {
+        if (time < 15) {
         time++;
         $(".knob").val(time).trigger('change');
         } else{
@@ -172,7 +172,7 @@ function countDownFinish() {
     ANSWER.answerB = 0;
     displayRightAnswer();
     // 显示5秒
-    sleep(5).then(() => {
+    sleep(8).then(() => {
         $(".knob").val(0).trigger('change');
         ANSWER.curAnswer++;
         DisplayCurQuestion();
