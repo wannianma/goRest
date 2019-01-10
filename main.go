@@ -27,7 +27,7 @@ func StartGin() {
 	defer env.Drop()
 
 	log.Println("Starting....[...]:" + env.Port)
-
+	log.Println("startGin " + env.Path)
 	env.Gin.GET("/", welcome)
 	routes.RegisterApiRoutes(env)
 	routes.RegisterWebRoutes(env)
@@ -37,7 +37,7 @@ func StartGin() {
 var configPath string
 
 func init() {
-	flag.StringVar(&configPath, "conf", "config.toml", "goWeb config toml file")
+	flag.StringVar(&configPath, "p", "/root/", "goWeb file path")
 	flag.Parse()
 }
 

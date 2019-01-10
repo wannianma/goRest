@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"sync"
@@ -119,9 +118,8 @@ func (info *TeamInfo) getAnserData() {
 	defer mutexTeam.RUnlock()
 }
 
-func loadDataFromFile() []byte {
-	wd, _ := os.Getwd()
-	b, err := ioutil.ReadFile(path.Join(wd, "questions.json"))
+func loadDataFromFile(filePath string) []byte {
+	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Printf("%s", err)
 		return []byte("")
@@ -147,7 +145,6 @@ var (
 			distance: 0,
 		},
 	}
-	questionsStr = loadDataFromFile()
 )
 
 func openListener(roomid string) chan interface{} {
@@ -196,6 +193,8 @@ func StreamData(c *gin.Context) {
 
 // GetQuestions 拉取题目列表
 func GetQuestions(c *gin.Context) {
+	env := server.Inst()
+	questionsStr := loadDataFromFile(path.Join(env.Path, "questions.json"))
 	var questionJSON []Question
 	if err := json.Unmarshal(questionsStr, &questionJSON); err != nil {
 		log.Println(err)

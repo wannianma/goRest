@@ -1,9 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"goWeb/models"
 	"goWeb/token"
 	"log"
+	"path"
 	"sync"
 
 	"github.com/BurntSushi/toml"
@@ -35,6 +37,7 @@ type tomlConfig struct {
 
 type Env struct {
 	appConfig
+	Path         string
 	Gin          *gin.Engine
 	DB           *gorm.DB `toml:"-"`
 	TokenManager *token.TokenManager
@@ -56,13 +59,16 @@ func (e *Env) _db_create() {
 func _init() *Env {
 	var conf tomlConfig
 	if configPath == "" {
-		configPath = "./config.toml"
+		configPath = "."
 	}
-	if _, err := toml.DecodeFile(configPath, &conf); err != nil {
-		log.Fatalf("Invalid toml file: %s, decode with error: %v", configPath, err)
+	configFile := path.Join(configPath, "config.toml")
+	if _, err := toml.DecodeFile(configFile, &conf); err != nil {
+		log.Fatalf("Invalid toml file: %s, decode with error: %v", configFile, err)
 	}
 
 	env := Env{}
+	env.Path = configPath
+	fmt.Println(env.Path)
 	env.appConfig = conf.App
 	env.ListenAddr = env.Host + ":" + env.Port
 

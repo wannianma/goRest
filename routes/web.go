@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"fmt"
 	"goWeb/server"
 	"html/template"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/foolin/gin-template"
@@ -12,12 +14,13 @@ import (
 
 func RegisterWebRoutes(env *server.Env) {
 	router := env.Gin
+	fmt.Println(env.Path + "In Route")
 	// router.LoadHTMLGlob("templates/*.tmpl.html")
-	router.Static("/static", "resources/static")
+	router.Static("/static", path.Join(env.Path, "resources/static"))
 
 	//new template engine
 	router.HTMLRender = gintemplate.New(gintemplate.TemplateConfig{
-		Root:      "views",
+		Root:      path.Join(env.Path, "views"),
 		Extension: ".tpl.html",
 		Master:    "layouts/master",
 		// Partials:  []string{"partials/ad"},
@@ -33,7 +36,7 @@ func RegisterWebRoutes(env *server.Env) {
 
 	//new template middleware
 	newYear := router.Group("/ny", gintemplate.NewMiddleware(gintemplate.TemplateConfig{
-		Root:         "views",
+		Root:         path.Join(env.Path, "views"),
 		Extension:    ".tpl.html",
 		Master:       "/layouts/blank",
 		Partials:     []string{},
