@@ -69,16 +69,13 @@
 						<div class="row">
 							<div class="col-xs-1"></div>
 							<div class="col-xs-8">
-								<a class="btn btn-app" id="resetTeam" style="display: none">
-									<i class="fa fa-play"></i> Reset
-								</a>
 								<h2 class="text-red" id="AnswerTitle">
 									1、迈金科技今年盈利最多的产品是什么？
 								</h2>
 							</div>
 							<div class="col-xs-3 text-center" style="border-left: 1px solid #f4f4f4">
 							<input type="text" class="knob" data-readonly="true" value="0" data-width="100" data-height="100"
-									data-fgColor="#39CCCC" data-displayprevious="true" data-min="0" data-max="10">			
+									data-fgColor="#39CCCC" data-displayprevious="true" data-min="0" data-max="15">			
 							</div>
 						</div>
 						<div class="row btnAnswerRow">
@@ -146,6 +143,27 @@
 				</div>
 			</div>
 		</div>
+		<div style="position: absolute;bottom: 20px;left: 20px; width: 200px;">
+			<div class="row">
+				<a class="btn btn-app btnComment" id="resetTeam">
+					<i class="fa fa-play"></i> Reset
+				</a>
+			</div>
+			<div class="row">
+				<button type="button" class="btn btn-success btnComment">绿队选择</button>
+			</div>
+			<div class="row">
+				<button type="button" class="btn btn-danger btnComment">红队选择</button>
+			</div>
+			<div class="row">
+				<button type="button" class="btn btn-warning btnComment">两队同选</button>
+			</div>
+			<div class="row">
+				<button type="button" class="btn btn-social btn-block btn-github btnComment">
+					<i class="fa fa-github"></i>正确答案
+				</button>
+			</div>
+		</div>
 		<div class="modal modal-success fade" id="modal-success" style="display: none;">
 			<div class="modal-dialog">
 			  <div class="modal-content">
@@ -177,6 +195,10 @@
 	.btnAnswerRow {
 		margin: 32px 0;
 	}
+	.btnComment {
+		margin: 5px 20px;
+		width: 80%;
+	}
 	.btn-answer-item {
 		font-size: 22px;
 	}
@@ -193,6 +215,16 @@
 <script>
 	$(document).ready(function() { 
 		StartRealtime();
+		$("#resetTeam").click(() => {
+				$.ajax({
+						type: "GET",
+						url: "/stream/reset",
+						dataType: "json",
+						success: function(data){
+								window.location.reload();
+						}
+				});
+		});
 	});
 </script>
 {{end}}
