@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"goWeb/routes"
 	"goWeb/server"
 	"log"
@@ -20,17 +21,23 @@ func StartWorkers() {
 
 // StartGin Start Gin Server
 func StartGin() {
-	gin.SetMode(gin.DebugMode)
-
+	server.SetConfig(configPath)
 	env := server.Inst()
 	defer env.Drop()
 
 	log.Println("Starting....[...]:" + env.Port)
-
+	log.Println("startGin " + env.Path)
 	env.Gin.GET("/", welcome)
 	routes.RegisterApiRoutes(env)
 	routes.RegisterWebRoutes(env)
 	env.Gin.Run(env.ListenAddr)
+}
+
+var configPath string
+
+func init() {
+	flag.StringVar(&configPath, "p", "/root/", "goWeb file path")
+	flag.Parse()
 }
 
 func main() {

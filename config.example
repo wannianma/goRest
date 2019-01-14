@@ -28,4 +28,5 @@ kVliZClHneBbzH5Bn5fOHhNYPSjGE2u/H7l6Y52H/3piQnL4i/gQHpptmiNuAfIA
 MaxAccessTokenMinute=15
 MaxRefreshTokenMinute=1440
 AllowCORS=true # Allow Cross Origin Resource Share
+TotalDistance=3000
 

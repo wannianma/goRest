@@ -3,10 +3,12 @@ package ny
 import (
 	"encoding/json"
 	"fmt"
+	"goWeb/server"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -45,8 +47,8 @@ func (info *TeamInfo) setAnswerA(data map[string]int) {
 	if data["qid"] > info.curAnswer && now > info.anserAt {
 		info.curAnswer = data["qid"]
 		info.answerA = data["aid"]
-		getAnswerBroadcast("A").Submit(fmt.Sprintf("%d:%d", data["qid"], data["aid"]))
 	}
+	getAnswerBroadcast("A").Submit(fmt.Sprintf("%d:%d", data["qid"], data["aid"]))
 }
 
 func (info *TeamInfo) setAnswerB(data map[string]int) {
@@ -96,13 +98,28 @@ func (info *TeamInfo) getCurAnswer() int {
 	return info.curAnswer
 }
 
+func (info *TeamInfo) getStartTime() uint64 {
+	mutexTeam.RLock()
+	defer mutexTeam.RUnlock()
+	return info.anserAt
+}
+
+func (info *TeamInfo) setStartTime() {
+	mutexTeam.Lock()
+	defer mutexTeam.Unlock()
+	env := server.Inst()
+
+	info.anserAt = uint64(time.Now().Unix()) + 30
+	info.totalDistance = uint64(env.TotalDistance)
+}
+
 func (info *TeamInfo) getAnserData() {
 	mutexTeam.RLock()
 	defer mutexTeam.RUnlock()
 }
 
-func loadDataFromFile() []byte {
-	b, err := ioutil.ReadFile("./questions.json")
+func loadDataFromFile(filePath string) []byte {
+	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Printf("%s", err)
 		return []byte("")
@@ -128,7 +145,6 @@ var (
 			distance: 0,
 		},
 	}
-	questionsStr = loadDataFromFile()
 )
 
 func openListener(roomid string) chan interface{} {
@@ -155,7 +171,7 @@ func getAnswerBroadcast(roomid string) broadcast.Broadcaster {
 func StreamData(c *gin.Context) {
 	listenerA := openListener("A")
 	listenerB := openListener("B")
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	defer func() {
 		closeListener("A", listenerA)
 		closeListener("B", listenerB)
@@ -177,6 +193,8 @@ func StreamData(c *gin.Context) {
 
 // GetQuestions 拉取题目列表
 func GetQuestions(c *gin.Context) {
+	env := server.Inst()
+	questionsStr := loadDataFromFile(path.Join(env.Path, "questions.json"))
 	var questionJSON []Question
 	if err := json.Unmarshal(questionsStr, &questionJSON); err != nil {
 		log.Println(err)
@@ -188,6 +206,11 @@ func GetQuestions(c *gin.Context) {
 		"curAnswer": teamInfo.getCurAnswer(),
 	}
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": data})
+}
+
+func TeamStart(c *gin.Context) {
+	teamInfo.setStartTime()
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": ""})
 }
 
 func PushData(c *gin.Context) {
@@ -208,8 +231,9 @@ func PushData(c *gin.Context) {
 		teamInfo.setTeamB(teamData)
 	}
 
-	state := map[string]int{
+	state := map[string]interface{}{
 		"curAnswer": teamInfo.getCurAnswer(),
+		"startAt":   teamInfo.getStartTime(),
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": state})

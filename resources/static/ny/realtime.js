@@ -11,17 +11,21 @@ var ANSWER = {
     "curAnswer": 0,
     "answerA": 0,
     "answerB": 0,
+    "inputA": -1,
+    "inputB": -2,
     "questions": {}
 };
 
 var btnMap = ["btnA", "btnB", "btnC", "btnD"];
-var host = "http://127.0.0.1";
+// var host = "http://192.168.188.240:7777";
 var isCountDown = false;
+var isEnd = false;
+var processBarHight = 30;
 
 function LoadQuestions() {
     $.ajax({
         type: "GET",
-        url: host + "/stream/questions",
+        url: "/stream/questions",
         dataType: "json",
         success: function(data){
             ANSWER.questions = data.data.questions;
@@ -41,18 +45,6 @@ function DisplayCurQuestion() {
         $("#btnB").html("B ：" + curQuestion.options[1]);
         $("#btnC").html("C ：" + curQuestion.options[2]);
         $("#btnD").html("D ：" + curQuestion.options[3]);
-    } else {
-        $("#resetTeam").show();
-        $("#resetTeam").click(() => {
-            $.ajax({
-                type: "GET",
-                url: host + "/stream/reset",
-                dataType: "json",
-                success: function(data){
-                    window.location.reload();
-                }
-            });
-        });
     }
 }
 
@@ -97,6 +89,7 @@ function answerA(e) {
         if (ANSWER.answerA < now) {
             ANSWER.answerA = now;
         }
+        ANSWER.inputA = newAnswer[1];
 
         if (ANSWER.answerB == 0 && !isCountDown) {
             countDownBar();
@@ -107,7 +100,11 @@ function answerA(e) {
 
 function displayAnswerA(aid) {
     $("#" + btnMap[aid]).removeClass("btn-default");
-    $("#" + btnMap[aid]).addClass("btn-success");
+    if (ANSWER.answerB != 0 && ANSWER.inputA == ANSWER.inputB) {
+        $("#" + btnMap[aid]).addClass("btn-warning");
+    } else {
+        $("#" + btnMap[aid]).addClass("btn-success");
+    }
 }
 
 function answerB(e) {
@@ -117,6 +114,7 @@ function answerB(e) {
         if (ANSWER.answerB < now) {
             ANSWER.answerB = now;
         }
+        ANSWER.inputB = newAnswer[1];
 
         if (ANSWER.answerA == 0) {
             countDownBar();
@@ -127,7 +125,12 @@ function answerB(e) {
 
 function displayAnswerB(aid) {
     $("#" + btnMap[aid]).removeClass("btn-default");
-    $("#" + btnMap[aid]).addClass("btn-danger");
+    console.log(ANSWER);
+    if (ANSWER.answerA != 0 && ANSWER.inputA == ANSWER.inputB) {
+        $("#" + btnMap[aid]).addClass("btn-warning");
+    } else {
+        $("#" + btnMap[aid]).addClass("btn-danger");
+    }
 }
 
 function removeAnswerCss() {
@@ -135,6 +138,7 @@ function removeAnswerCss() {
         $("#" + btnMap[i]).removeClass("btn-danger");
         $("#" + btnMap[i]).removeClass("btn-github");
         $("#" + btnMap[i]).removeClass("btn-success");
+        $("#" + btnMap[i]).removeClass("btn-warning");
         $("#" + btnMap[i]).addClass("btn-default");
     }
 }
@@ -154,7 +158,7 @@ function countDownBar() {
     var time = 0;
     isCountDown = true;
     var interval = setInterval(() => {
-        if (time < 10) {
+        if (time < 15) {
         time++;
         $(".knob").val(time).trigger('change');
         } else{
@@ -168,6 +172,8 @@ function countDownFinish() {
     isCountDown = false;
     ANSWER.answerA = 0;
     ANSWER.answerB = 0;
+    ANSWER.inputA = -1;
+    ANSWER.inputB = -2;
     displayRightAnswer();
     // 显示5秒
     sleep(5).then(() => {
@@ -185,9 +191,19 @@ function sleep(ms) {
 
 function setProcessBarData(data) {
     $("#green-bar").attr("aria-valuenow", data.A);
-    $("#green-bar").css("height",parseInt(data.A/10) + "%");
+    $("#green-bar").css("height",parseInt(data.A/processBarHight) + "%");
+    if (parseInt(data.A/processBarHight) >= 100 && !isEnd) {
+        console.log("A END");
+        $("#modal-success").modal("show");
+        isEnd = true;
+    }
     $("#red-bar").attr("aria-valuenow", data.B);
-    $("#red-bar").css("height",parseInt(data.B/10)+ "%");
+    $("#red-bar").css("height",parseInt(data.B/processBarHight)+ "%");
+    if (parseInt(data.B/processBarHight) >= 100 && !isEnd) {
+        console.log("B END");
+        $("#modal-danger").modal("show");
+        isEnd = true;
+    }
 }
 
 function parseJSONStats(e) {

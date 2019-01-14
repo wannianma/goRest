@@ -1,9 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"goWeb/models"
 	"goWeb/token"
 	"log"
+	"path"
 	"sync"
 
 	"github.com/BurntSushi/toml"
@@ -15,6 +17,7 @@ import (
 
 var once sync.Once
 var instance *Env
+var configPath string
 
 type appConfig struct {
 	Host                  string
@@ -27,6 +30,7 @@ type appConfig struct {
 	MaxAccessTokenMinute  uint
 	MaxRefreshTokenMinute uint
 	AllowCORS             bool
+	TotalDistance         uint
 }
 
 type tomlConfig struct {
@@ -35,6 +39,7 @@ type tomlConfig struct {
 
 type Env struct {
 	appConfig
+	Path         string
 	Gin          *gin.Engine
 	DB           *gorm.DB `toml:"-"`
 	RClient      *redis.Client
@@ -60,13 +65,19 @@ func (e *Env) _db_create() {
 	}
 }
 
-func _init(fpath string) *Env {
+func _init() *Env {
 	var conf tomlConfig
-	if _, err := toml.DecodeFile(fpath, &conf); err != nil {
-		log.Fatalf("Invalid toml file: %s, decode with error: %v", fpath, err)
+	if configPath == "" {
+		configPath = "."
+	}
+	configFile := path.Join(configPath, "config.toml")
+	if _, err := toml.DecodeFile(configFile, &conf); err != nil {
+		log.Fatalf("Invalid toml file: %s, decode with error: %v", configFile, err)
 	}
 
 	env := Env{}
+	env.Path = configPath
+	fmt.Println(env.Path)
 	env.appConfig = conf.App
 	env.ListenAddr = env.Host + ":" + env.Port
 
@@ -90,11 +101,12 @@ func _init(fpath string) *Env {
 	if err != nil {
 		log.Fatalf("Error Create TokenManager '%v'", err)
 	}
-	env.Gin = gin.Default()
-	// gin.SetMode(gin.ReleaseMode)
 
+	gin.SetMode(gin.ReleaseMode)
+	env.Gin = gin.Default()
 	if env.AllowCORS {
 		log.Println("In DEBUG MODE, CORS is ALLOWED")
+		gin.SetMode(gin.DebugMode)
 		env.Gin.Use(corsMiddleware())
 	}
 
@@ -103,9 +115,13 @@ func _init(fpath string) *Env {
 
 func Inst() *Env {
 	once.Do(func() {
-		instance = _init("./config.toml")
+		instance = _init()
 	})
 	return instance
+}
+
+func SetConfig(path string) {
+	configPath = path
 }
 
 // a helper middleware used to by-pass CORS
