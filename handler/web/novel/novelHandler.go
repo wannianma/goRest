@@ -70,7 +70,6 @@ func NovelList(c *gin.Context) {
 
 func NovelDetail(c *gin.Context) {
 	pid := c.Param("pid")
-	fmt.Println(pid)
 	env := server.Inst()
 	pidInt, _ := strconv.Atoi(pid)
 

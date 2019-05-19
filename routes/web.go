@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"goWeb/handler/web/novel"
 	"goWeb/server"
 	"html/template"
@@ -15,7 +14,6 @@ import (
 
 func RegisterWebRoutes(env *server.Env) {
 	router := env.Gin
-	fmt.Println(env.Path + "In Route")
 	// router.LoadHTMLGlob("templates/*.tmpl.html")
 	router.Static("/static", path.Join(env.Path, "resources/static"))
 

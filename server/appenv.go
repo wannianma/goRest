@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"goWeb/models"
 	"goWeb/token"
 	"log"
@@ -77,7 +76,6 @@ func _init() *Env {
 
 	env := Env{}
 	env.Path = configPath
-	fmt.Println(env.Path)
 	env.appConfig = conf.App
 	env.ListenAddr = env.Host + ":" + env.Port
 
